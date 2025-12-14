@@ -29,8 +29,7 @@ from agent.utils import (
     get_research_topic,
     insert_citation_markers,
     resolve_urls,
-    extract_token_usage_from_langchain,
-    extract_token_usage_from_genai_client,
+    create_token_usage_record,
 )
 
 load_dotenv()
@@ -83,15 +82,9 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     
     update = {"search_query": result.query}
     if configurable.track_token_usage:
-        token_usage = extract_token_usage_from_langchain(result)
-        update["token_usage_records"] = [
-            {
-                "node_name": "generate_query",
-                "input_tokens": token_usage["input_tokens"],
-                "output_tokens": token_usage["output_tokens"],
-                "model": configurable.query_generator_model,
-            }
-        ]
+        update["token_usage_records"] = create_token_usage_record(
+            result, "generate_query", configurable.query_generator_model, is_langchain=True
+        )
     
     return update
 
@@ -151,15 +144,9 @@ def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     }
     
     if configurable.track_token_usage:
-        token_usage = extract_token_usage_from_genai_client(response)
-        update["token_usage_records"] = [
-            {
-                "node_name": "web_research",
-                "input_tokens": token_usage["input_tokens"],
-                "output_tokens": token_usage["output_tokens"],
-                "model": configurable.query_generator_model,
-            }
-        ]
+        update["token_usage_records"] = create_token_usage_record(
+            response, "web_research", configurable.query_generator_model, is_langchain=False
+        )
     
     return update
 
@@ -208,15 +195,9 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
     }
     
     if configurable.track_token_usage:
-        token_usage = extract_token_usage_from_langchain(result)
-        update["token_usage_records"] = [
-            {
-                "node_name": "reflection",
-                "input_tokens": token_usage["input_tokens"],
-                "output_tokens": token_usage["output_tokens"],
-                "model": reasoning_model,
-            }
-        ]
+        update["token_usage_records"] = create_token_usage_record(
+            result, "reflection", reasoning_model, is_langchain=True
+        )
     
     return update
 
@@ -306,15 +287,9 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     }
     
     if configurable.track_token_usage:
-        token_usage = extract_token_usage_from_langchain(result)
-        update["token_usage_records"] = [
-            {
-                "node_name": "finalize_answer",
-                "input_tokens": token_usage["input_tokens"],
-                "output_tokens": token_usage["output_tokens"],
-                "model": reasoning_model,
-            }
-        ]
+        update["token_usage_records"] = create_token_usage_record(
+            result, "finalize_answer", reasoning_model, is_langchain=True
+        )
     
     return update
 

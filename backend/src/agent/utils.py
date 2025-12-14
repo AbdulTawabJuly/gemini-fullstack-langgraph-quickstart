@@ -39,6 +39,36 @@ def extract_token_usage_from_genai_client(response: Any) -> Dict[str, int]:
     return {"input_tokens": 0, "output_tokens": 0}
 
 
+def create_token_usage_record(
+    response: Any, node_name: str, model: str, is_langchain: bool = True
+) -> List[Dict[str, Any]]:
+    """
+    Create a token usage record for a node execution.
+
+    Args:
+        response: The response object from either LangChain or google.genai.Client
+        node_name: Name of the node that generated the response
+        model: Model name used for the request
+        is_langchain: True if response is from LangChain, False if from google.genai.Client
+
+    Returns:
+        List containing a single token usage record dictionary
+    """
+    if is_langchain:
+        token_usage = extract_token_usage_from_langchain(response)
+    else:
+        token_usage = extract_token_usage_from_genai_client(response)
+
+    return [
+        {
+            "node_name": node_name,
+            "input_tokens": token_usage["input_tokens"],
+            "output_tokens": token_usage["output_tokens"],
+            "model": model,
+        }
+    ]
+
+
 def get_research_topic(messages: List[AnyMessage]) -> str:
     """
     Get the research topic from the messages.
