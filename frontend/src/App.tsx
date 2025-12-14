@@ -73,11 +73,10 @@ export default function App() {
           processedEvent!,
         ]);
       }
-      
-      const nodeNames = ['generate_query', 'web_research', 'reflection', 'finalize_answer'];
-      for (const nodeName of nodeNames) {
-        if (event[nodeName]?.token_usage_records) {
-          const newRecords = event[nodeName].token_usage_records;
+
+      for (const key in event) {
+        if (event[key]?.token_usage_records) {
+          const newRecords = event[key].token_usage_records;
           if (Array.isArray(newRecords) && newRecords.length > 0) {
             setTokenUsageTimeline((prev) => [...prev, ...newRecords]);
           }
