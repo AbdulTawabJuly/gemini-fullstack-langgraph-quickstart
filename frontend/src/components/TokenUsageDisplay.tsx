@@ -163,7 +163,7 @@ export function TokenUsageDisplay({
                             </span>
                             {nodeCost > 0 && (
                               <span className="ml-auto text-green-400">
-                                ${nodeCost.toFixed(5)}
+                                ${nodeCost.toFixed(4)}
                               </span>
                             )}
                           </div>
