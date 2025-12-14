@@ -201,7 +201,7 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
   return (
     <div className={`relative break-words flex flex-col`}>
       {activityForThisBubble && activityForThisBubble.length > 0 && (
-        <div className="mb-3 text-xs">
+        <div className="mb-3 border-b border-neutral-700 pb-3 text-xs">
           <ActivityTimeline
             processedEvents={activityForThisBubble}
             isLoading={isLiveActivityForThisBubble}
@@ -209,7 +209,7 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
         </div>
       )}
       {tokenUsageForThisBubble && tokenUsageForThisBubble.length > 0 && (
-        <div className="mb-3 text-xs">
+        <div className="mb-3 border-b border-neutral-700 pb-3 text-xs">
           <TokenUsageDisplay
             tokenRecords={tokenUsageForThisBubble}
             isLoading={isLiveTokenUsageForThisBubble}
