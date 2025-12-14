@@ -2,6 +2,43 @@ from typing import Any, Dict, List
 from langchain_core.messages import AnyMessage, AIMessage, HumanMessage
 
 
+def extract_token_usage_from_langchain(response: Any) -> Dict[str, int]:
+    """
+    Extract token usage from LangChain ChatGoogleGenerativeAI response.
+
+    Args:
+        response: The response object from LangChain's ChatGoogleGenerativeAI
+
+    Returns:
+        Dictionary with 'input_tokens' and 'output_tokens' keys
+    """
+    if hasattr(response, "response_metadata"):
+        usage = response.response_metadata.get("usage_metadata", {})
+        return {
+            "input_tokens": usage.get("prompt_token_count", 0),
+            "output_tokens": usage.get("candidates_token_count", 0),
+        }
+    return {"input_tokens": 0, "output_tokens": 0}
+
+
+def extract_token_usage_from_genai_client(response: Any) -> Dict[str, int]:
+    """
+    Extract token usage from native google.genai.Client response.
+
+    Args:
+        response: The response object from google.genai.Client
+
+    Returns:
+        Dictionary with 'input_tokens' and 'output_tokens' keys
+    """
+    if hasattr(response, "usage_metadata"):
+        return {
+            "input_tokens": response.usage_metadata.prompt_token_count,
+            "output_tokens": response.usage_metadata.candidates_token_count,
+        }
+    return {"input_tokens": 0, "output_tokens": 0}
+
+
 def get_research_topic(messages: List[AnyMessage]) -> str:
     """
     Get the research topic from the messages.

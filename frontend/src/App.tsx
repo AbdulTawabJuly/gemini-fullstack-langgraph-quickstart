@@ -2,6 +2,7 @@ import { useStream } from "@langchain/langgraph-sdk/react";
 import type { Message } from "@langchain/langgraph-sdk";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ProcessedEvent } from "@/components/ActivityTimeline";
+import { TokenUsageRecord } from "@/components/TokenUsageDisplay";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,12 @@ export default function App() {
   const [historicalActivities, setHistoricalActivities] = useState<
     Record<string, ProcessedEvent[]>
   >({});
+  const [tokenUsageTimeline, setTokenUsageTimeline] = useState<
+    TokenUsageRecord[]
+  >([]);
+  const [historicalTokenUsage, setHistoricalTokenUsage] = useState<
+    Record<string, TokenUsageRecord[]>
+  >({});
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hasFinalizeEventOccurredRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +28,7 @@ export default function App() {
     initial_search_query_count: number;
     max_research_loops: number;
     reasoning_model: string;
+    token_usage_records?: TokenUsageRecord[];
   }>({
     apiUrl: import.meta.env.DEV
       ? "http://localhost:2024"
@@ -65,6 +73,16 @@ export default function App() {
           processedEvent!,
         ]);
       }
+      
+      const nodeNames = ['generate_query', 'web_research', 'reflection', 'finalize_answer'];
+      for (const nodeName of nodeNames) {
+        if (event[nodeName]?.token_usage_records) {
+          const newRecords = event[nodeName].token_usage_records;
+          if (Array.isArray(newRecords) && newRecords.length > 0) {
+            setTokenUsageTimeline((prev) => [...prev, ...newRecords]);
+          }
+        }
+      }
     },
     onError: (error: any) => {
       setError(error.message);
@@ -94,15 +112,20 @@ export default function App() {
           ...prev,
           [lastMessage.id!]: [...processedEventsTimeline],
         }));
+        setHistoricalTokenUsage((prev) => ({
+          ...prev,
+          [lastMessage.id!]: [...tokenUsageTimeline],
+        }));
       }
       hasFinalizeEventOccurredRef.current = false;
     }
-  }, [thread.messages, thread.isLoading, processedEventsTimeline]);
+  }, [thread.messages, thread.isLoading, processedEventsTimeline, tokenUsageTimeline]);
 
   const handleSubmit = useCallback(
     (submittedInputValue: string, effort: string, model: string) => {
       if (!submittedInputValue.trim()) return;
       setProcessedEventsTimeline([]);
+      setTokenUsageTimeline([]);
       hasFinalizeEventOccurredRef.current = false;
 
       // convert effort to, initial_search_query_count and max_research_loops
@@ -181,6 +204,8 @@ export default function App() {
               onCancel={handleCancel}
               liveActivityEvents={processedEventsTimeline}
               historicalActivities={historicalActivities}
+              liveTokenUsage={tokenUsageTimeline}
+              historicalTokenUsage={historicalTokenUsage}
             />
           )}
       </main>
